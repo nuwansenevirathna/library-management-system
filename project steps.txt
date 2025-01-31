@@ -1,0 +1,112 @@
+
+
+
+              1) php artisan make:model Student -mcr
+
+
+      Go to model
+
+      <?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+
+
+class Student extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'studentname', 'email', 'phone', // Add the fields you want to allow
+    ];
+}
+
+
+
+
+
+ 
+      2) Edit the migration file in database/migrations/xxxx_xx_xx_create_students_table.php
+
+
+      public function up(): void
+    {
+        Schema::create('students', function (Blueprint $table) {
+            $table->id();
+            $table->string('studentname');
+            $table->string('email');
+            $table->string('phone');
+            $table->timestamps();
+        });
+    }
+
+
+
+
+      3) php artisan migrate
+
+
+
+      4) Open routes/web.php and define routes for your CRUD operations:
+
+
+
+      use App\Http\Controllers\StudentController;
+
+      Route::resource('students', StudentController::class);
+
+
+
+      5) Edit the ItemController in app/Http/Controllers/StudentController.php:
+
+
+
+       use App\Models\Student;
+use Illuminate\Http\Request;
+
+class StudentController extends Controller
+{
+    public function index()
+    {
+        $students = Student::all();
+        return view('students.index', compact('students'));
+    }
+
+    public function create()
+    {
+        return view('students.create');
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'studentname' => 'required',
+            'email' => 'required',
+            'phone' => 'required',
+        ]);
+
+        Student::create($request->all());
+        return redirect()->route('students.index')->with('success', 'Student created successfully.');
+    }
+
+    public function edit(Student $student)
+    {
+        return view('students.edit', compact('student'));
+    }
+
+    public function update(Request $request, Student $student)
+    {
+        $student->update($request->only(['studentname', 'email', 'phone']));
+        return redirect()->route('students.index')->with('success', 'Student updated successfully.');
+
+    }
+
+    public function destroy(Student $student)
+    {
+        $student->delete();
+        return redirect()->route('students.index')->with('success', 'Student deleted successfully!');
+    }
+}
